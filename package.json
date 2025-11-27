@@ -1,0 +1,32 @@
+{
+  "name": "ai-spot-trading",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^5.0.5"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@binance/connector": "^3.6.1",
+    "@binance/spot": "^23.0.1",
+    "@google/genai": "^1.30.0",
+    "@nktkas/hyperliquid": "^0.26.0",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
+    "ai": "^5.0.84",
+    "axios": "^1.13.2",
+    "clone": "^2.1.2",
+    "cors": "^2.8.5",
+    "delta-rest-client": "^1.0.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "git": "^0.1.5",
+    "lighter-sdk-ts": "https://github.com/Aimlessss/lighter-sdk-ts.git",
+    "mongodb": "^7.0.0",
+    "node-fetch": "^3.3.2",
+    "recharts": "^3.4.1"
+  }
+}

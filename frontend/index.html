@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Account Balance Chart</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        background: #ffffff;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 40px;
+      }
+
+      #title {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+
+      #chart-container {
+        width: 100%;
+        height: 500px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="title">ai-spot</div>
+
+    <div id="chart-container">
+      <canvas id="balanceChart"></canvas>
+    </div>
+
+    <script>
+      let chart;
+
+      // Load logo
+      const logoImg = new Image();
+      logoImg.src = "./Gemini_logo.webp";
+
+      async function fetchHistory() {
+        const res = await fetch("http://localhost:3000/balance-history");
+        const data = await res.json();
+
+        return {
+          labels: data.map((x) =>
+            new Date(x.timestamp).toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          ),
+          values: data.map((x) => Number(x.balance)),
+        };
+      }
+
+      // Logo plugin (fixed)
+      const LogoPlugin = {
+        id: "logoPlugin",
+        afterDraw(chartInstance) {
+          const { ctx } = chartInstance;
+          const ds = chartInstance.data.datasets[0];
+
+          if (!ds || ds.data.length === 0 || !logoImg.complete) return;
+
+          const meta = chartInstance.getDatasetMeta(0);
+          const lastPoint = meta.data[meta.data.length - 1];
+          if (!lastPoint) return;
+
+          const x = lastPoint.x;
+          const y = lastPoint.y;
+          const size = 40;
+
+          ctx.save();
+          ctx.globalCompositeOperation = "source-over";
+
+          // White circle background
+          ctx.beginPath();
+          ctx.arc(x + 15, y, size / 2, 0, Math.PI * 2);
+          ctx.fillStyle = "white";
+          ctx.fill();
+
+          // Logo
+          ctx.drawImage(logoImg, x + 15 - size / 2, y - size / 2, size, size);
+
+          // Value box
+          const value = ds.data[ds.data.length - 1];
+          const boxX = x + size + 25;
+          const boxY = y - 15;
+
+          ctx.fillStyle = "black";
+          ctx.fillRect(boxX, boxY, 105, 30);
+
+          ctx.fillStyle = "white";
+          ctx.font = "14px Arial";
+          ctx.fillText(`$${value.toFixed(2)}`, boxX + 10, boxY + 20);
+
+          ctx.restore();
+        },
+      }; //
+
+      // Draw chart
+      async function drawChart() {
+        const data = await fetchHistory();
+        const ctx = document.getElementById("balanceChart");
+
+        if (chart) chart.destroy();
+
+        chart = new Chart(ctx, {
+        type: "line",
+        plugins: [LogoPlugin],
+        data: {
+            labels: data.labels,
+            datasets: [
+            {
+                label: "Balance",
+                data: data.values,
+                borderColor: "#3b82f6",
+                borderWidth: 3,
+                fill: false,
+                tension: 0.35,
+                pointRadius: 0.0001,
+            },
+            ],
+        },
+        options: {
+            animation: false,
+            plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false },   // IMPORTANT FIX
+            },
+            scales: {
+            x: { grid: { display: false } },
+            y: {
+                grid: { color: "#e5e7eb" },
+                ticks: {
+                callback: (v) => "$" + v.toLocaleString(),
+                },
+            },
+            },
+        },
+        });
+
+      }
+
+      // Wait for logo to load
+      logoImg.onload = () => {
+        drawChart();
+        setInterval(drawChart, 30000);
+      };
+    </script>
+  </body>
+</html>
